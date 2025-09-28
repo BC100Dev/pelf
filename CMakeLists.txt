@@ -1,0 +1,41 @@
+cmake_minimum_required(VERSION 3.25)
+project(ProjectTemplate)
+
+set(CMAKE_CXX_STANDARD 20)
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config")
+    file(GLOB CM_CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config/*.cmake")
+    foreach (CM_CONFIG_FILE ${CM_CONFIG_FILES})
+        include("${CM_CONFIG_FILE}")
+    endforeach ()
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Include")
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Include")
+endif ()
+
+## integration: add conditional checks for Inclusions
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Include.d")
+    file(GLOB COND_INCLUDE_GLOB "${CMAKE_CURRENT_SOURCE_DIR}/Include.d/*")
+    foreach (COND_INCLUDE_ENTRY ${COND_INCLUDE_GLOB})
+        get_filename_component(COND_INCLUDE_ENTRY_NAME "${COND_INCLUDE_ENTRY}" NAME_WE)
+        if (DEFINED "${COND_INCLUDE_ENTRY_NAME}")
+            include_directories("${COND_INCLUDE_ENTRY}")
+            message(STATUS "Sourced up conditional include directory for ${COND_INCLUDE_ENTRY_NAME}")
+        endif ()
+    endforeach ()
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Sources")
+    file(GLOB Private_CM_CONFIG_Modules "${CMAKE_CURRENT_SOURCE_DIR}/Sources/*")
+    foreach (Private_CM_CONFIG_Module ${Private_CM_CONFIG_Modules})
+        if (EXISTS "${Private_CM_CONFIG_Module}/SourceInfo.cmake")
+            set(PROJECT_MODULE_ROOT "${Private_CM_CONFIG_Module}")
+            include("${PROJECT_MODULE_ROOT}/SourceInfo.cmake")
+
+            message(STATUS "Project Index successful: ${PROJECT_MODULE_ROOT}")
+        endif ()
+    endforeach ()
+else ()
+    message(FATAL_ERROR "The directory for sources not found. Make sure that the directory exists, and that at least one module is present.")
+endif ()
